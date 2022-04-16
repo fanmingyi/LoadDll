@@ -1,0 +1,60 @@
+[Project]
+Assembler=masm
+Type=Win32 App
+Description=LoadDll
+Backup=$P\Bak\
+Group=1
+GroupExpand=1
+[Files]
+1=LoadDll.Asm
+2=LoadDll.Inc
+3=LoadDll.Rc
+4=LoadDll.Txt
+[MakeFiles]
+0=LoadDll.rap
+1=LoadDll.rc
+2=LoadDll.asm
+3=LoadDll.obj
+4=LoadDll.res
+5=LoadDll.exe
+6=LoadDll.def
+7=LoadDll.dll
+8=LoadDll.txt
+9=LoadDll.lib
+10=LoadDll.mak
+11=LoadDll.hla
+12=LoadDll.com
+13=LoadDll.ocx
+14=LoadDll.idl
+15=LoadDll.tlb
+16=LoadDll.sys
+[MakeDef]
+Menu=1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0
+1=4,O,$B\RC.EXE /v,1
+2=3,O,$B\ML.EXE /c /coff /Cp /nologo /I"$I",2
+3=5,O,$B\LINK.EXE /SUBSYSTEM:WINDOWS /RELEASE /VERSION:4.0 /LIBPATH:"$L" /OUT:"$5",3,4
+4=0,0,,5
+5=rsrc.obj,O,$B\CVTRES.EXE,rsrc.res
+6=*.obj,O,$B\ML.EXE /c /coff /Cp /nologo /I"$I",*.asm
+7=0,0,"$E\OllyDbg",5
+[Group]
+Group=Assembly,Resources,Misc
+1=2
+2=2
+3=3
+4=4
+[AutoLoad]
+AutoLoad=
+[RADebugBP]
+1=
+[Find]
+1="@dwOffReloc"
+2="@dwSizeOfImag"
+3="@hInst"
+4="int"
+5="@pBaseReloc"
+6="int 3"
+7="@dwCntOfReloc"
+8="virtual"
+9="	int 3"
+10="g_szLoadError"
