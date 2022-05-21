@@ -213,7 +213,7 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	mov eax,[ebx].VirtualAddress
 	add eax,@hInst
 	
-	mov @pBaseReloc,ecx
+	mov @pBaseReloc,eax
 	
 	mov eax,[ebx].isize
 	

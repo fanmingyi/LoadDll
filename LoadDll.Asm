@@ -311,7 +311,7 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 		
 		mov ebx,@pTempThunk
 		.while dword ptr [ebx]!=NULL
-			.if dword ptr[ebx] &  8000000h
+			.if dword ptr[ebx] >= 8000000h
 				;ÐòºÅµ¼Èë
 				movzx eax,word ptr [ebx] ;µÍ×ÖÎªÐòºÅ
 				invoke GetProcAddress,@hDll,eax

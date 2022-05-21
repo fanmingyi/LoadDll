@@ -399,6 +399,12 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 		.endif
 	.endw
 	
+	;调用dllmain
+	push NULL
+	push DLL_PROCESS_ATTACH
+	push @hInst
+	call @dwOep
+	
 	
 	;清理
 EXIT:	

@@ -60,7 +60,7 @@ MyGetProcAddress proc hDll:HINSTANCE,pName:LPCTSTR
 			;¶Ô±È×Ö·û´®
 			invoke crt_strcmp,pName,eax
 			.if eax == 0
-				;int 3;
+				
 				mov eax,@dwCnt
 				mov ebx,[esi].AddressOfNameOrdinals
 				add ebx,hDll
@@ -206,7 +206,7 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	mov @pImpHdr,eax
 	assume eax:nothing	
 	
-	int 3;
+
 	
 	lea ebx,[esi].OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC * sizeof IMAGE_DATA_DIRECTORY ]
 	assume ebx:ptr IMAGE_DATA_DIRECTORY

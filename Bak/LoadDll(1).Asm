@@ -194,7 +194,7 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	;存储的是dll申请的内存
 	mov @hInst,eax
 	
-	;存储的是首选基地址
+	;@dwOffReloc存储的是首选基地址和实际加载地址的偏差
 	sub eax,[esi].OptionalHeader.ImageBase
 	mov @dwOffReloc,eax
 	
@@ -369,32 +369,33 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 		
 		
 		xor ecx,ecx
-		
+		;遍历偏移数组每一项
 		.while ecx < @dwCntOfReloc
+			;ecx表示正在遍历第几个
 			movzx eax,word ptr[ebx + ecx*sizeof word]
+			;只处理30类别 
 			.if eax  & 0f000h
-			;需要重定位
-			and eax,0fffh
-			add eax,[esi].VirtualAddress
+				;需要重定位
+				and eax,0fffh
+				add eax,[esi].VirtualAddress
+				;获取需要重定位的地址
+				add eax,@hInst
 			
-			add eax,@hInst;获取需要重定位的地址
-			
-			;重定位
-			mov edi,@dwOffReloc
-			add dword ptr [eax],edi 
+				;重定位
+				mov edi,@dwOffReloc
+				add dword ptr [eax],edi 
 					
 			.endif
-			inc ecx
 			
-			;.while ecx>=0
-			;.endw
+			inc ecx
+
 		.endw
 		
 		;;处理下一个分页 重定位表的下一个item
 		add esi,[esi].SizeOfBlock
 		;判断是否处理完所有重定位
 		mov edi,esi
-		
+		;如果下一项的地址减去初始地址大于重定位初始地址证明遍历完成
 		sub edi,@pBaseReloc
 		.if edi >= @dwSizeOfReloc
 			.break

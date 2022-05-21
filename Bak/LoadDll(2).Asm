@@ -132,12 +132,14 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	;映射文件
 	invoke CreateFile,offset g_szExeName,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL
 	.if eax ==INVALID_HANDLE_VALUE
-		
 		xor eax,eax
 		ret	
 	.endif
+	
+	;存储文件
 	mov @hFile,eax
 	
+	;创建映射
 	invoke CreateFileMapping,@hFile,NULL,PAGE_READONLY,0,0,NULL
 	.if eax==NULL
 		invoke CloseHandle,@hFile
@@ -145,7 +147,7 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	.endif
 	
 	mov @hFileMap,eax
-	
+	;执行映射
 	invoke MapViewOfFile,@hFileMap,FILE_MAP_READ,0,0,0
 	
 	.if eax==NULL
@@ -155,6 +157,7 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 		ret
 	.endif 
 	
+	;保存映射得到的地址
 	mov @lpMapAddr,eax
 	assume esi:nothing
 	
@@ -182,17 +185,20 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	mov eax,[esi].OptionalHeader.SizeOfImage
 	mov @dwSizeOfImag,eax
 	 
-	;申请内存
+	;申请dll内存
 	invoke  VirtualAlloc,NULL,@dwSizeOfImag,MEM_COMMIT,PAGE_EXECUTE_READWRITE
 	.if eax==NULL
 		mov @hInst,NULL
 		jmp EXIT 
 	.endif
+	;存储的是dll申请的内存
 	mov @hInst,eax
 	
+	;存储的是首选基地址
 	sub eax,[esi].OptionalHeader.ImageBase
 	mov @dwOffReloc,eax
 	
+	;存储的是dll 的dllmain
 	push [esi].OptionalHeader.AddressOfEntryPoint
 	pop @dwOep
 	mov eax,@hInst
@@ -207,16 +213,16 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	assume eax:nothing	
 	
 
-	
+	;得到重定位表
 	lea ebx,[esi].OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC * sizeof IMAGE_DATA_DIRECTORY ]
 	assume ebx:ptr IMAGE_DATA_DIRECTORY
 	mov eax,[ebx].VirtualAddress
 	add eax,@hInst
-	
+	;存储的重定位表地址
 	mov @pBaseReloc,eax
-	
+	;存储的重定位表大小
 	mov eax,[ebx].isize
-	
+	;保存重定位表大小
 	mov @dwSizeOfReloc,eax
 	
 	assume ebx:nothing
@@ -225,22 +231,14 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	
 	assume eax:ptr IMAGE_DATA_DIRECTORY
 	
-		
-	;拷贝PE头
-	;修改内存数据
-
 	
-	;invoke VirtualProtect,@hInst,IMAGE_SIZE,PAGE_EXECUTE_READWRITE,addr @dwOldProc
-	
-	
+	;拷贝dll节头到内存中
 	invoke crt_memcpy,@hInst,@lpMapAddr,@dwNumOfHeaders
 	
 	
-	;拷贝节
 	xor ebx,ebx
 	
-	
-	 
+	 ;拷贝节
 	.while ebx < @dwNumberOfsection
 		mov ecx,@pSecHdr
 		assume ecx:ptr IMAGE_SECTION_HEADER
@@ -352,17 +350,21 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	;int 3;
 	;处理重定位
 	.while TRUE
+		;@pBaseReloc存储的是重定位表初始化地址
 		mov esi,@pBaseReloc
 		assume esi:ptr IMAGE_BASE_RELOCATION
 		
 		
-		;获取页内偏移数组地址
+		;获取页内偏移数组地址,IMAGE_BASE_RELOCATION结构不包偏移数组含
 		lea ebx,[esi+sizeof IMAGE_BASE_RELOCATION]
 		
-		;获取页内偏移的个数
+		;这里的得到是是偏移数组和IMAGE_BASE_RELOCATION总大小
 		mov ecx,[esi].SizeOfBlock
+		;减去结构体可以偏移数组的大小
 		sub ecx,sizeof IMAGE_BASE_RELOCATION
+		;右移动除以2，可以得到数组个数（因为每个item大小为2）
 		shr ecx,1
+		;存储数组的大小
 		mov @dwCntOfReloc,ecx
 		
 		
@@ -388,7 +390,7 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 			;.endw
 		.endw
 		
-		;;处理下一个分页
+		;;处理下一个分页 重定位表的下一个item
 		add esi,[esi].SizeOfBlock
 		;判断是否处理完所有重定位
 		mov edi,esi

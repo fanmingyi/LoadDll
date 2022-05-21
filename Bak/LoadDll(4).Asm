@@ -349,7 +349,7 @@ LoadDll proc uses esi edi ebx ecx pPath:LPSTR
 	 	add @pImpHdr,sizeof IMAGE_IMPORT_DESCRIPTOR;下一项
 	.endw
 	
-	int 3;
+	;int 3;
 	;处理重定位
 	.while TRUE
 		mov esi,@pBaseReloc
